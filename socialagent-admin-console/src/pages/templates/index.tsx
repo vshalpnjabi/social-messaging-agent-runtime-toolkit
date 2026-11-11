@@ -48,9 +48,21 @@ export default function TemplatesPage({ navigate }: { navigate: (href: string) =
     <>
       <TemplatePreviewModal visible={!!previewTemplate} onDismiss={() => setPreviewTemplate(null)} stackId={previewTemplate?.stack ?? ""} templateName={previewTemplate?.name ?? ""} />
       {error ? (
-        <Alert type="error" header="Failed to load templates" action={<Button iconName="refresh" onClick={refresh}>Retry</Button>}>
-          {error}
-        </Alert>
+        <SpaceBetween size="l">
+          <Header
+            variant="awsui-h1-sticky"
+            description="All WhatsApp message templates across deployed SMART stacks."
+            actions={
+              <SpaceBetween direction="horizontal" size="xs">
+                <Select inlineLabelText="Stack" selectedOption={stackFilter} options={stackOptions ?? [{ label: "All stacks", value: "all" }]} onChange={({ detail }) => setStackFilter(detail.selectedOption as typeof stackFilter)} />
+                <Button iconName="refresh" variant="icon" onClick={refresh} />
+              </SpaceBetween>
+            }
+          >Templates</Header>
+          <Alert type="error" header="Failed to load templates" action={<Button iconName="refresh" onClick={refresh}>Retry</Button>}>
+            {error}
+          </Alert>
+        </SpaceBetween>
       ) : (
       <>
       <SpaceBetween size="s">

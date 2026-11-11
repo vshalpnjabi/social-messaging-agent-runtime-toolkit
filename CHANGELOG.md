@@ -8,7 +8,7 @@ All notable changes to SMART, the Social Messaging Agent Runtime Toolkit, are re
 - `personal-assistant` now passes `transcribe_languages` to the transcription call in its `on_media` hook, so the setting applies to its voice notes as it does to the default path. `handlers/` is project code, so an existing project adds `language_options=config.transcribe_languages,` to the `transcribe_audio` call in `handlers/webhook.py` by hand. The blueprint's YAML sets `transcribe_languages: [es-MX, en-US]`, which had no effect on its voice notes before this fix, so check that the list names your users' languages before you deploy the change.
 
 ### Admin console
-- A refused State, Conversations, Templates or Schedules list shows the 403 error in place of the empty-table text and zero counts.
+- A refused State, Conversations, Templates or Schedules list shows the 403 error in place of the empty-table text and zero counts. Templates and Conversations keep the stack selector and refresh above that error so a failed stack load can return to All stacks.
 
 ## [2026.10.0] - 2026-11-05
 

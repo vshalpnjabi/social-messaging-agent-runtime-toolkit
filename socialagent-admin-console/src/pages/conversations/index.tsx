@@ -69,9 +69,21 @@ export default function ConversationsPage({ navigate }: { navigate: (href: strin
       <SpaceBetween size="l">
         {flash.length > 0 && <Flashbar items={flash.map((f, i) => ({ ...f, id: String(i), dismissible: true, onDismiss: () => setFlash([]) }))} />}
         {error ? (
-          <Alert type="error" header="Failed to load conversations" action={<Button iconName="refresh" onClick={refresh}>Retry</Button>}>
-            {error}
-          </Alert>
+          <SpaceBetween size="l">
+            <Header
+              variant="awsui-h1-sticky"
+              description="Conversations across all stacks from AgentCore Memory."
+              actions={
+                <SpaceBetween direction="horizontal" size="xs">
+                  <Select inlineLabelText="Stack" selectedOption={stackFilter} options={stackOptions ?? [{ label: "All stacks", value: "all" }]} onChange={({ detail }) => setStackFilter(detail.selectedOption as typeof stackFilter)} />
+                  <Button iconName="refresh" variant="icon" onClick={refresh} />
+                </SpaceBetween>
+              }
+            >Conversations</Header>
+            <Alert type="error" header="Failed to load conversations" action={<Button iconName="refresh" onClick={refresh}>Retry</Button>}>
+              {error}
+            </Alert>
+          </SpaceBetween>
         ) : (
         <Table
           variant="full-page" stickyHeader resizableColumns selectionType="multi"

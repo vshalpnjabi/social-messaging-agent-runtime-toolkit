@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import createWrapper from "@cloudscape-design/components/test-utils/dom";
 import StatePage from "@/pages/state";
 import ConversationsPage from "@/pages/conversations";
@@ -42,7 +42,7 @@ const pages = [
     renderPage: () => <StatePage navigate={noop} />,
     mock: () => vi.mocked(api.listAllState),
     empty: "No user state stored across any stack.",
-    zero: "0 keys, 0 users, 0 stacks",
+    zero: "(0 keys, 0 users, 0 stacks)",
     row: "counter#visits",
     loadingText: "Loading state...",
     successEmpty: [] as unknown,
@@ -108,6 +108,15 @@ function clickRefresh() {
   fireEvent.click(buttons[buttons.length - 1]);
 }
 
+async function chooseStack(value: string) {
+  await waitFor(() => {
+    expect(createWrapper().findSelect()).not.toBeNull();
+  });
+  const select = createWrapper().findSelect()!;
+  select.openDropdown();
+  select.selectOptionByValue(value);
+}
+
 describe.each(pages)("$name page", ({ renderPage, mock, empty, zero, row, loadingText, successEmpty, populated }) => {
   it("shows a refused list as the error, not as empty", async () => {
     mock().mockRejectedValue(forbidden);
@@ -170,5 +179,33 @@ describe.each(pages)("$name page", ({ renderPage, mock, empty, zero, row, loadin
     expect(await screen.findByText(row)).toBeInTheDocument();
     expect(screen.queryByText(/Requires 'operator' group membership/)).not.toBeInTheDocument();
     expect(screen.queryByText(empty)).not.toBeInTheDocument();
+  });
+});
+
+const stackFilterPages = pages.filter((p) => p.name === "Conversations" || p.name === "Templates");
+
+describe.each(stackFilterPages)("$name page", ({ renderPage, mock, empty, row, populated }) => {
+  // These pages hide the table on a failed load, but must keep the stack
+  // selector so an operator who selected a failing stack can return to All
+  // stacks without leaving the page.
+  it("keeps the stack selector so a failed stack load can return to All stacks", async () => {
+    mock().mockImplementation((stack?: string) => {
+      if (stack && stack !== "all") return Promise.reject(new Error("stack unavailable"));
+      return Promise.resolve(populated as never);
+    });
+    render(renderPage());
+    expect(await screen.findByText(row)).toBeInTheDocument();
+
+    await chooseStack("test-dev");
+
+    expect(await screen.findByText("stack unavailable")).toBeInTheDocument();
+    expect(screen.queryByText(row)).not.toBeInTheDocument();
+    expect(screen.queryByText(empty)).not.toBeInTheDocument();
+    expect(table()).toBeNull();
+
+    await chooseStack("all");
+
+    expect(await screen.findByText(row)).toBeInTheDocument();
+    expect(screen.queryByText("stack unavailable")).not.toBeInTheDocument();
   });
 });
